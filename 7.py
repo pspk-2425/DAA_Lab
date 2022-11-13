@@ -1,97 +1,111 @@
-# Importing the priority_queue code
-from priority_queue import priority_queue
+class priorityqueue:
+    def __init__(self) -> None:
+        self.arr = []
 
-class Graph:
-    # constructor
-    def __init__(self, num_of_vertices):
-        self.v = num_of_vertices
-        self.edges = [[-1 for i in range(num_of_vertices)] for j in range(num_of_vertices)]
-        self.visited = []
+    def lchild(self,pos) -> int:
+        return (pos*2)+1
 
-    # adding edges
-    def add_edge(self, u, v, weight):
-        self.edges[u][v] = weight
-        self.edges[v][u] = weight
+    def rchild(self,pos) -> int:
+        return (pos*2)+2
 
-# Functiion to calculate the shortest path from a given source vertex
-def dijkstra(graph, start_vertex):
-    D = {v:float('inf') for v in range(graph.v)}
-    D[start_vertex] = 0
+    def parent(self,pos) -> int:
+        return (pos-1)//2
 
-    # list used to calculate the path
-    child = [-1 for i in range(graph.v)]
+    def isleaf(self,pos) -> bool:
+        n = len(self.arr)
+        return ((pos*2)>=n)
 
-    # Invoking priority queue functions
-    pq = priority_queue(key=lambda x: x[1])
-    pq.heap_push((start_vertex,0))
-
-    while not pq.empty():
-        (current_vertex,dist) = pq.top()
-        pq.heap_pop()
-        # We put the start vertex in the priority queue. Now, for each vertex in the priority queue, we will first mark them as visited, and then we will iterate through their neighbors.
-        graph.visited.append(current_vertex)
-
-        for neighbor in range(graph.v):
-            if graph.edges[current_vertex][neighbor] != -1:
-                # If the neighbor is not visited, we will compare its old cost and its new cost
-                distance = graph.edges[current_vertex][neighbor]
-                if neighbor not in graph.visited:
-                    old_cost = D[neighbor]
-                    new_cost = D[current_vertex] + distance
-                    # f the new cost is lower than the old cost, we put the neighbor and its cost to the priority queue, and update the list where we keep the shortest paths accordingly.
-                    if new_cost < old_cost:
-                        pq.heap_push((neighbor,new_cost))
-                        D[neighbor] = new_cost
-                        child[current_vertex] = graph.edges[0][neighbor]
-    return D,child
-
-# Function to print the path taken from source to destination
-def print_path(c,src,des):
-    def printPathUntil(c,curr,target):
-        if(curr == c[curr] or curr == target):
-            return
-        print(curr,end="->")
-        printPathUntil(c,c[curr],target)
-    printPathUntil(c,src,des)
-    print(des)
-
-# Driver code
-if __name__ == "__main__":
-    # graph taken
-    # g = Graph(9)
-    # g.add_edge(0, 1, 4)
-    # g.add_edge(0, 6, 7)
-    # g.add_edge(1, 6, 11)
-    # g.add_edge(1, 7, 20)
-    # g.add_edge(1, 2, 9)
-    # g.add_edge(2, 3, 6)
-    # g.add_edge(2, 4, 2)
-    # g.add_edge(3, 4, 10)
-    # g.add_edge(3, 5, 5)
-    # g.add_edge(4, 5, 15)
-    # g.add_edge(4, 7, 1)
-    # g.add_edge(4, 8, 5)
-    # g.add_edge(5, 8, 12)
-    # g.add_edge(6, 7, 1)
-    # g.add_edge(7, 8, 3) 
-
-    v = int(input("Enter No of vertices : "))
-    g = Graph(v)
-    E = int(input("Enter No of Edges : "))
+    def heapifyup(self,pos) -> None:
+        while(pos>0):
+            p = self.parent(pos)
+            if self.arr[p] > self.arr[pos]:
+                self.arr[p], self.arr[pos] = self.arr[pos], self.arr[p]
+            pos = p
     
-    for _ in range(E):
-        print(f"For Edge {_+1}: ")
-        u,v,w = map(int,input("\tEnter u,v,w seperated by spaces : ").split())
-        g.add_edge(u,v,w)
+    def insert(self,ele) -> None:
+        self.arr.append(ele)
+        n =len(self.arr)
+        if n==1:
+            return
+        self.heapifyup(n-1)
 
-    source = int(input("Enter the source vertex : "))
-    Dest = int(input("Enter the Destination vertex : "))
+    def heapifydown(self, ind) -> None:
+        if(self.isleaf(ind)):
+            return
+        n = len(self.arr)
+        lc = self.lchild(ind)
+        rc = self.rchild(ind)
+        mini = ind
+        if(lc<n and self.arr[lc]<self.arr[mini]):
+            mini=lc
+        if(rc<n and self.arr[rc]<self.arr[mini]):
+            mini=rc
+        if(mini != ind):
+            self.arr[mini], self.arr[ind] = self.arr[ind], self.arr[mini]
+            self.heapifydown(mini)
 
-    c=[]
 
-    D,c = dijkstra(g, source)
+    def delete(self) -> None:
+        # print(self.arr)
+        t = self.arr[0]
+        self.arr[0] = self.arr[-1]
+        self.arr.pop(-1)
+        self.heapifydown(0)
+        return t
 
-    print("Distance from vertex 0 to vertex", Dest, "is", D[Dest])
+    def top(self) -> int:
+        if len(self.arr) == 0:
+            return
+        else:
+            return self.arr[0]
 
-    print("Using the path : ",end=" ")
-    print_path(c,source,Dest)
+    def isempty(self) -> bool:
+        n = len(self.arr)
+        if n==0:
+            return True
+        else:
+            return False
+
+
+
+
+
+class graph :
+    def __init__(self, vertices :int) -> None:
+        self.v = vertices
+        self.adj = [[] for _ in range(v)]
+    
+    def addedge(self, u : int, v : int, w : int) ->None:
+        self.adj[u].append([v,w])
+        self.adj[v].append([u,w])
+
+    def shortestpath(self, src :int):
+        pq = priorityqueue()
+        dist = [int(1e9) for _ in range(self.v)]
+        pq.insert([0,src])
+        dist[src] = 0
+        
+        while not pq.isempty():
+            u = pq.top()[1]
+            pq.delete()
+            for i in self.adj[u]:
+                v = i[0]
+                w = i[1]
+                if dist[v] > dist[u]+w:
+                    dist[v] = dist[u]+w
+                    pq.insert([dist[v],v])
+        print("/n")
+        for i in range(self.v):
+            print(f"The shortest distance form the {src} to {i} is {dist[i]}")
+
+if __name__ == "__main__":
+    v = int(input("Enter the number of vertices : "))
+    g = graph(v)
+    edges = int(input("Enter no edges : "))
+    for i in range(edges):
+        u = int(input("Enter vertex 1 : "))
+        v = int(input("enter vertex 2 : "))
+        w = int(input("enter weight : "))
+        g.addedge(u,v,w)
+    src = int(input("enter the vertex from which the shortest path should be calculated : "))
+    g.shortestpath(src)
